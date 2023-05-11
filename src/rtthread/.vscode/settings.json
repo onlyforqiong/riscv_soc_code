@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "rtthread.h": "c",
+        "rtfixpoint.h": "c",
+        "rtdevice.h": "c",
+        "serial.h": "c"
+    }
+}
