@@ -43,9 +43,17 @@
 typedef struct {
     uint32_t uart_base;
     int irq;
+    uint16_t div_value;
     uint8_t send_data;
     uint8_t receive_data;
 } uart_handle;
+
+typedef struct {
+    uart_handle *rx_handle;
+    int* receive_buffer;
+    int receive_num;
+    int receive_counter;
+} uart_rx;
 
 void uart_init(uart_handle* phandle);
 uint8_t inline uart_read_reg(uart_handle * phandle,uint32_t reg ) {
@@ -55,4 +63,10 @@ uint8_t inline uart_write_reg(uart_handle * phandle,uint32_t reg,uint8_t data ) 
     return (*(volatile uint8_t *)(phandle->uart_base + reg)) = data;
 }
 
+int hw_uart_init(uart_handle *phandle);
+int uart_putc(uart_handle *phandle, char c);
+int uart_getc(uart_handle *phandle);
+
+extern uart_handle remote_uart_handle;
+extern uart_rx rx_handle;
 #endif /* __DRV_UART_H__ */

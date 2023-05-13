@@ -1,7 +1,7 @@
 #include <pid_alg.h>
 #include <rtthread.h>
 
-PID_PIDparam_Typedef PID_ChassisMotorpidparam = {fixedpt_fromint(10),fixedpt_rconst(0.01),fixedpt_fromint(0),fixedpt_fromint(10000),fixedpt_fromint(10000)};
+PID_PIDparam_Typedef PID_ChassisMotorpidparam = {fixedpt_fromint(5),fixedpt_rconst(0.01),fixedpt_fromint(0.01),fixedpt_fromint(10000),fixedpt_fromint(10000)};
 
 
 void PID_InitPIDParam(PID_PIDparam_Typedef* ppram, fixedpt kp, fixedpt ki, fixedpt kd, fixedpt max_pid, fixedpt max_sumi) {

@@ -16,7 +16,7 @@
 #include <riscv_io.h>
 #include <encoding.h>
 
-#define VIRT_CLINT_TIMEBASE_FREQ    (36000000)
+#define VIRT_CLINT_TIMEBASE_FREQ    (46000000)
 
 static volatile uint64_t time_elapsed = 0;
 static volatile unsigned long tick_cycles = 0;

@@ -8,8 +8,8 @@ Motor_MotorTypedef Motor_chassisLeft1;
 Motor_MotorTypedef Motor_chassisLeft2;
 Motor_MotorTypedef Motor_chassisRight1;
 Motor_MotorTypedef Motor_chassisRight2;
-PID_PIDparam_Typedef Motor_chassismotorpidparam = {fixedpt_fromint(10), fixedpt_rconst(0.0), fixedpt_rconst(0.0), fixedpt_fromint(10000), fixedpt_fromint(200000)};
-
+PID_PIDparam_Typedef Motor_chassismotorpidparam = {fixedpt_fromint(5), fixedpt_rconst(0.0), fixedpt_rconst(0.0), fixedpt_fromint(10000), fixedpt_fromint(200000)};
+lowpass_filterdata Motor_lowpass_filter = {fixedpt_rconst(0.5), fixedpt_rconst(0.0), fixedpt_rconst(0.0)};
 #define can_base_addr 0x21000000
 static can_rx_handle_t chassis_motor_rx = {0, can_base_addr};
 static can_tx_handle_t chassis_motor_tx = {0, can_base_addr};
@@ -45,8 +45,8 @@ void Motor_MotorEncoderDecode(uint8_t rxdata[], Motor_MotorTypedef *pmotor)
     pmotor->speed = rxdata[2] << 8 | rxdata[3];
     pmotor->current = rxdata[4] << 8 | rxdata[5];
     pmotor->temp = rxdata[6];
-    pmotor->motor_pidhander.fdb = fixedpt_fromint(pmotor->speed);
-    
+    pmotor->motor_pidhander.fdb = lowpass_filter(&pmotor->filter_handle, fixedpt_fromint(pmotor->speed));
+
     //   if(flag == 1)
     //   pmotor->motor_pidhander.ref = 0;
 
@@ -61,23 +61,29 @@ void Motor_MotorGroupsPID_Clac(Motor_MotorGroupTypedef *pmotor)
 {
 
     uint8_t motor_num = pmotor->motor_number;
+    // pmotor->motor_motorhandler
+    // for(int i = 0; i < motor_num; i++) {
+    //     char out_string[20];
+    //     fixedpt_str(pmotor->motor_motorhandler[i].motor_pidhander.ref, out_string,-1);
+    //     rt_kprintf("ref %d\n  %s",i,out_string);
+    // }
     for (; motor_num > 0; motor_num--)
     {
         Motor_MotorPID_Clac(&pmotor->motor_motorhandler[motor_num - 1]);
-        if(motor_num == 4) {
-            char out_string[20];
+        // if(motor_num == 4) {
+        //     char out_string[20];
 
-            fixedpt_str(pmotor->motor_motorhandler[3].motor_pidhander.fdb,out_string,-1); 
-            rt_kprintf("3 fdb %s \n",out_string);
-            fixedpt_str(pmotor->motor_motorhandler[3].motor_pidhander.output,out_string,-1);
-            rt_kprintf("3 output %s \n",out_string); 
-            fixedpt_str(pmotor->motor_motorhandler[3].motor_pidhander.ref,out_string,-1);
-            rt_kprintf("3 ref %s \n",out_string); 
-            fixedpt_str(pmotor->motor_motorhandler[3].motor_pidhander.sumi,out_string,-1);
-            rt_kprintf("3 sum %s \n",out_string); 
-            // fixedpt_str(pmotor->motor_motorhandler[3].motor_pidparamhander.kp,out_string,-1);
-            // rt_kprintf("3 kp %s \n",out_string); 
-        }
+        //     fixedpt_str(pmotor->motor_motorhandler[3].motor_pidhander.fdb,out_string,-1);
+        //     rt_kprintf("3 fdb %s \n",out_string);
+        //     fixedpt_str(pmotor->motor_motorhandler[3].motor_pidhander.output,out_string,-1);
+        //     rt_kprintf("3 output %s \n",out_string);
+        //     fixedpt_str(pmotor->motor_motorhandler[3].motor_pidhander.ref,out_string,-1);
+        //     rt_kprintf("3 ref %s \n",out_string);
+        //     fixedpt_str(pmotor->motor_motorhandler[3].motor_pidhander.sumi,out_string,-1);
+        //     rt_kprintf("3 sum %s \n",out_string);
+        //     // fixedpt_str(pmotor->motor_motorhandler[3].motor_pidparamhander.kp,out_string,-1);
+        //     // rt_kprintf("3 kp %s \n",out_string);
+        // }
     }
 }
 
@@ -100,6 +106,10 @@ void Motor_MotorGroupInit(Motor_MotorGroupTypedef *pmotor, uint8_t motor_num, Mo
     pmotor->motor_motorhandler[1] = Motor_chassisLeft2;
     pmotor->motor_motorhandler[2] = Motor_chassisRight1;
     pmotor->motor_motorhandler[3] = Motor_chassisRight2;
+    for (int i = 0; i < 4; i++)
+    {
+        pmotor->motor_motorhandler[i].filter_handle = Motor_lowpass_filter;
+    }
 
     Motor_motorInit(&pmotor->motor_motorhandler[0], motors_type, Motor_chassismotorpidparam);
     Motor_motorInit(&pmotor->motor_motorhandler[1], motors_type, Motor_chassismotorpidparam);
@@ -128,10 +138,17 @@ void Motor_motorInit(Motor_MotorTypedef *pmotor, Motor_MotorTypeEnum motortype, 
 
 void Motor_Chassis_Decoder(Motor_MotorGroupTypedef *pmotor)
 {
+
+    static int last_id = 0;
     //   HAL_CAN_GetRxMessage(phcan, CAN_RX_FIFO0, &rxhander, Can_RxData);
     CAN_GetData(&(pmotor->hcan_rx));
-    int32_t speed =pmotor->hcan_rx.receive_data[2] << 8 | pmotor->hcan_rx.receive_data[3];
-    rt_kprintf("id %x\n", pmotor->hcan_rx.id);
+    if (last_id == pmotor->hcan_rx.id)
+    {
+        return;
+    }
+    last_id = pmotor->hcan_rx.id;
+    int32_t speed = pmotor->hcan_rx.receive_data[2] << 8 | pmotor->hcan_rx.receive_data[3];
+    // rt_kprintf("id %x\n", pmor->hcan_rx.id);
     switch (pmotor->hcan_rx.id)
     {
     case 0x201:
@@ -150,6 +167,8 @@ void Motor_Chassis_Decoder(Motor_MotorGroupTypedef *pmotor)
         // rt_kprintf("4 %d\n",speed);
         Motor_MotorEncoderDecode(pmotor->hcan_rx.receive_data, &pmotor->motor_motorhandler[3]);
         break;
+    default:
+        break;
     }
 }
 
@@ -160,7 +179,7 @@ void Task_MotorControl(void *argument)
     Motor_MotorGroupInit(&Motor_chassisMotors, 4, Motor_CANMOTOR, chassis_motor_tx, chassis_motor_rx);
     for (int i = 0; i < 4; i++)
     {
-        Motor_chassisMotors.motor_motorhandler[i].motor_pidhander.ref = fixedpt_fromint(2000);
+        Motor_chassisMotors.motor_motorhandler[i].motor_pidhander.ref = fixedpt_fromint(0);
     }
     /* Infinite loop */
     for (;;)
@@ -171,7 +190,7 @@ void Task_MotorControl(void *argument)
         // rt_kprintf("come here\n");
         Motor_MotorGroupsPID_Clac(&Motor_chassisMotors);
         Motor_SendMessage(&Motor_chassisMotors);
-        rt_thread_mdelay(20);
+        rt_thread_mdelay(5);
     }
     /* USER CODE END Task_MotorControl */
 }

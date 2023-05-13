@@ -273,10 +273,10 @@ void *rt_malloc(rt_size_t size)
 {
     rt_size_t ptr, ptr2;
     struct heap_mem *mem, *mem2;
-    rt_kprintf("0\n");
+    // rt_kprintf("0\n");
     if (size == 0)
         return RT_NULL;
-    rt_kprintf("1\n");
+    // rt_kprintf("1\n");
     RT_DEBUG_NOT_IN_INTERRUPT;
 
     if (size != RT_ALIGN(size, RT_ALIGN_SIZE))
@@ -294,7 +294,7 @@ void *rt_malloc(rt_size_t size)
 
         return RT_NULL;
     }
-     rt_kprintf("2\n");
+    //  rt_kprintf("2\n");
 
     /* every data block must be at least MIN_SIZE_ALIGNED long */
     if (size < MIN_SIZE_ALIGNED)

@@ -3,6 +3,8 @@
         "rtthread.h": "c",
         "rtfixpoint.h": "c",
         "rtdevice.h": "c",
-        "serial.h": "c"
+        "serial.h": "c",
+        "remote_periph.h": "c",
+        "rthw.h": "c"
     }
 }

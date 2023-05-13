@@ -14,10 +14,10 @@
 #define RT_USING_HOOK
 #define RT_USING_IDLE_HOOK
 #define RT_IDLE_HOOK_LIST_SIZE 4
-#define IDLE_THREAD_STACK_SIZE 4096
+#define IDLE_THREAD_STACK_SIZE 2048
 #define RT_USING_TIMER_SOFT
 #define RT_TIMER_THREAD_PRIO 4
-#define RT_TIMER_THREAD_STACK_SIZE 4096
+#define RT_TIMER_THREAD_STACK_SIZE 2048
 
 /* kservice optimization */
 
@@ -183,6 +183,6 @@
 
 /* RISCV qemu virt64 configs */
 
-#define __STACKSIZE__ 20000
+#define __STACKSIZE__ 50000
 
 #endif

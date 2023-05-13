@@ -17,13 +17,15 @@
 #include "sbi.h"
 #include "interrupt.h"
 
-#define UART_CONFIG_NUM 3
 
+ uart_handle remote_uart_handle = {0x10001000,10,300,0,0};
+ uart_rx rx_handle = {&remote_uart_handle,NULL,0,0};
 struct device_uart
 {
     rt_ubase_t  hw_base;
     rt_uint32_t irqno;
 };
+
 
 static rt_err_t  rt_uart_configure(struct rt_serial_device *serial, struct serial_configure *cfg);
 static rt_err_t uart_control(struct rt_serial_device *serial, int cmd, void *arg);
@@ -40,8 +42,8 @@ void uart_init(uart_handle* phandle)
     // uart_write_reg(DLL, 0x01);
     // uart_write_reg(DLM, 0x00);
 
-    uart_write_reg(phandle,DLM,(UART_CONFIG_NUM & (0xff00)) >> 8 );
-    uart_write_reg(phandle,DLL,UART_CONFIG_NUM & (0x00ff) );
+    uart_write_reg(phandle,DLM,(phandle->div_value & (0xff00)) >> 8 );
+    uart_write_reg(phandle,DLL,phandle->div_value & (0x00ff) );
 
     lcr = 0;
     uart_write_reg(phandle,LCR, lcr | (3 << 0));
@@ -88,16 +90,18 @@ static rt_err_t uart_control(struct rt_serial_device *serial, int cmd, void *arg
     return (RT_EOK);
 }
 
-static int uart_putc(uart_handle *phandle, char c)
+int uart_putc(uart_handle *phandle, char c)
 {
     while ((uart_read_reg(phandle,LSR) & LSR_TX_IDLE) == 0);
     return uart_write_reg(phandle,THR, c);
 }
 
-static int uart_getc(uart_handle *phandle)
+int uart_getc(uart_handle *phandle)
 {
     if (uart_read_reg(phandle,LSR) & LSR_RX_READY){
-        return uart_read_reg(phandle,RHR);
+        
+        phandle->receive_data =  uart_read_reg(phandle,RHR);
+        return 0;
     } else {
         return -1;
     }
@@ -136,7 +140,7 @@ int hw_uart_init(uart_handle *phandle)
 
         serial->ops              = &uart_ops;
         serial->config           = config;
-        serial->config.baud_rate = UART_DEFAULT_BAUDRATE;
+        serial->config.baud_rate = 9600;
 
         uart->hw_base   = phandle->uart_base;
         uart->irqno     = phandle->irq;

@@ -13,6 +13,8 @@
 #include<pid_alg.h>
 #include<can_util.h>
 #include<motor_periph.h>
+#include<uart_util.h>
+#include<remote_periph.h>
 
 #define THREAD_PRIORITY   3
 #define THREAD_STACK_SIZE 512
@@ -20,6 +22,8 @@
 
 static rt_thread_t tid1 = RT_NULL;
 static rt_thread_t tid2 = RT_NULL;
+static rt_thread_t tid3 = RT_NULL;
+// static rt_thread_t tid2 = RT_NULL;
 // static char out_buf[16];
 // extern char *itoa(unsigned int val, char *str, int base);
 
@@ -131,7 +135,7 @@ int thread_sample(void)
     // {
     //     rt_thread_startup(tid1);
     // }
-
+    // rt_kprintf("come here\n");
 
     tid2 = rt_thread_create("motor_read_entry",
                             motor_read_entry, (void*)2,
@@ -141,6 +145,18 @@ int thread_sample(void)
     if (tid2 != RT_NULL)
     {
         rt_thread_startup(tid2);
+    }
+    //  rt_kprintf("come here2\n");
+
+    tid3 = rt_thread_create("remote_uart_get",
+                            remote_uart_get, (void*)2,
+                            2048,
+                            1, 1);
+
+
+    if (tid3 != RT_NULL)
+    {
+        rt_thread_startup(tid3);
     }
         
 

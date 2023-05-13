@@ -9,6 +9,7 @@ extern "C"
 #include <pid_alg.h>
 #include <can_util.h>
 #include <rtfixpoint.h>
+#include<filter_alg.h>
 
 
 
@@ -39,6 +40,7 @@ typedef struct {
 
     PID_PIDparam_Typedef motor_pidparamhander;
     PID_PIDTypeDef motor_pidhander;
+    lowpass_filterdata filter_handle;
 
 } Motor_MotorTypedef;
 

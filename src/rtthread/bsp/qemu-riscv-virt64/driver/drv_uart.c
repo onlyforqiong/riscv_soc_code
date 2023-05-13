@@ -17,7 +17,7 @@
 #include "sbi.h"
 #include "interrupt.h"
 
-#define UART_CONFIG_NUM 3
+#define UART_CONFIG_NUM 25
 
 struct device_uart
 {
