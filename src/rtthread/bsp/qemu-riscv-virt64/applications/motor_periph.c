@@ -4,6 +4,7 @@
 #include <rtthread.h>
 
 Motor_MotorGroupTypedef Motor_chassisMotors;
+Motor_MotorGroupTypedef Motor_gimbalMotors;
 Motor_MotorTypedef Motor_chassisLeft1;
 Motor_MotorTypedef Motor_chassisLeft2;
 Motor_MotorTypedef Motor_chassisRight1;
@@ -13,6 +14,10 @@ lowpass_filterdata Motor_lowpass_filter = {fixedpt_rconst(0.5), fixedpt_rconst(0
 #define can_base_addr 0x21000000
 static can_rx_handle_t chassis_motor_rx = {0, can_base_addr};
 static can_tx_handle_t chassis_motor_tx = {0, can_base_addr};
+
+#define can_base_addr_1 0x21000000
+static can_rx_handle_t chassis_motor_rx_1 = {0, can_base_addr_1};
+static can_tx_handle_t chassis_motor_tx_1 = {0, can_base_addr_1};
 
 void Motor_SendMessage(Motor_MotorGroupTypedef *pmotor)
 {
